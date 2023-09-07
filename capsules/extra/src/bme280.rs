@@ -104,9 +104,9 @@ impl Default for CalibrationData {
     }
 }
 
-pub struct Bme280<'a> {
+pub struct Bme280<'a, I: I2CDevice> {
     buffer: TakeCell<'static, [u8]>,
-    i2c: &'a dyn I2CDevice,
+    i2c: &'a I,
     calibration: Cell<CalibrationData>,
     temperature_client: OptionalCell<&'a dyn TemperatureClient>,
     humidity_client: OptionalCell<&'a dyn HumidityClient>,
@@ -115,8 +115,8 @@ pub struct Bme280<'a> {
     t_fine: Cell<usize>,
 }
 
-impl<'a> Bme280<'a> {
-    pub fn new(i2c: &'a dyn I2CDevice, buffer: &'static mut [u8]) -> Self {
+impl<'a, I: I2CDevice> Bme280<'a, I> {
+    pub fn new(i2c: &'a I, buffer: &'static mut [u8]) -> Self {
         Bme280 {
             buffer: TakeCell::new(buffer),
             i2c,
@@ -140,7 +140,7 @@ impl<'a> Bme280<'a> {
     }
 }
 
-impl<'a> TemperatureDriver<'a> for Bme280<'a> {
+impl<'a, I: I2CDevice> TemperatureDriver<'a> for Bme280<'a, I> {
     fn set_client(&self, client: &'a dyn TemperatureClient) {
         self.temperature_client.set(client);
     }
@@ -165,7 +165,7 @@ impl<'a> TemperatureDriver<'a> for Bme280<'a> {
     }
 }
 
-impl<'a> HumidityDriver<'a> for Bme280<'a> {
+impl<'a, I: I2CDevice> HumidityDriver<'a> for Bme280<'a, I> {
     fn set_client(&self, client: &'a dyn HumidityClient) {
         self.humidity_client.set(client);
     }
@@ -190,7 +190,7 @@ impl<'a> HumidityDriver<'a> for Bme280<'a> {
     }
 }
 
-impl<'a> I2CClient for Bme280<'a> {
+impl<'a, I: I2CDevice> I2CClient for Bme280<'a, I> {
     fn command_complete(&self, buffer: &'static mut [u8], status: Result<(), i2c::Error>) {
         if let Err(i2c_err) = status {
             // We have no way to report an error, so just return a bogus value
