@@ -447,7 +447,7 @@ pub unsafe fn main() {
     // RTC DATE TIME
 
     match peripherals.rtc.rtc_init() {
-        Ok(_) => {}
+        Ok(()) => {}
         Err(e) => {
             debug!("error starting rtc {:?}", e);
         }
